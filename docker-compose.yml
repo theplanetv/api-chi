@@ -1,0 +1,9 @@
+services:
+  database-postgresql:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+    ports:
+      - "${POSTGRES_PUBLIC_PORT}:${POSTGRES_PORT}"

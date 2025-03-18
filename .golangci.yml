@@ -1,0 +1,20 @@
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+linters-settings:
+  errcheck:
+    exclude-functions: []
+
+issues:
+  exclude-use-default: false
+  exclude: []
+
+run:
+  timeout: 2m
+  tests: true
