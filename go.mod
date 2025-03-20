@@ -7,11 +7,13 @@ require (
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/render v1.0.3
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/gosimple/slug v1.15.0
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/stretchr/testify v1.10.0
 )
 
 require (
+	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 )
