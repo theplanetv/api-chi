@@ -64,7 +64,6 @@ func Test_BlogTagService(t *testing.T) {
 		defer service.Close()
 		assert.NoError(t, err)
 
-
 		// Declare input
 		search := ""
 		limit := 3

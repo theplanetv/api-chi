@@ -1,6 +1,6 @@
 package models
 
 type BlogTag struct {
-	Id   string `db:"id"   json:"id"`
-	Name string `db:"name" json:"name"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
