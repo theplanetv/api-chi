@@ -1,3 +1,10 @@
+networks:
+  network: # Define the network
+    ipam:
+      driver: default
+      config:
+        - subnet: 14.0.0.0/24 # Define the subnet for the custom network
+
 services:
   database-postgresql:
     image: postgres:17-alpine
@@ -7,3 +14,37 @@ services:
       POSTGRES_DB: ${POSTGRES_DATABASE}
     ports:
       - "${POSTGRES_PUBLIC_PORT}:${POSTGRES_PORT}"
+    networks:
+      network:
+        ipv4_address: ${POSTGRES_PUBLIC_HOST}
+
+  api-chi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # Database
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_PUBLIC_HOST: ${POSTGRES_PUBLIC_HOST}
+      POSTGRES_URL: ${POSTGRES_URL}
+
+      # Goose database migration
+      GOOSE_DRIVER: ${GOOSE_DRIVER}
+      GOOSE_DBSTRING: ${GOOSE_DBSTRING}
+      GOOSE_MIGRATION_DIR: ${GOOSE_MIGRATION_DIR}
+
+      # Auth
+      AUTH_USERNAME: ${API_CHI_AUTH_USERNAME}
+      AUTH_PASSWORD: ${API_CHI_AUTH_PASSWORD}
+      AUTH_BCRYPT_COST: ${API_CHI_AUTH_BCRYPT_COST}
+      AUTH_SECRET_KEY: ${API_CHI_AUTH_SECRET_KEY}
+
+      API_PORT: ${API_CHI_PORT}
+
+    ports:
+      - "${API_CHI_PUBLIC_PORT}:${API_CHI_PORT}"
+
+    networks:
+      network:
+        ipv4_address: ${API_CHI_PUBLIC_HOST}

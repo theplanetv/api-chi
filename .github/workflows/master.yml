@@ -1,0 +1,89 @@
+name: Github Actions
+run-name: ${{ github.actor }} is running Github Actions 🚀
+on:
+  push:
+    branches:
+      - "*"
+
+jobs:
+  enter-nix-flake-shell:
+    name: Enter nix shell
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup nix
+        uses: cachix/install-nix-action@v27
+
+      - name: Enter nix flake devshell
+        run: nix develop .
+        if: always()
+
+  build-docker:
+    name: Build docker container
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker, Docker compose and build start
+        uses: hoverkraft-tech/compose-action@v2
+
+  test:
+    name: Run tests
+    runs-on: ubuntu-24.04
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.23"
+
+      - name: Install dependencies
+        run: |
+          go mod download
+          go install github.com/pressly/goose/v3/cmd/goose@latest
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          chmod +x ./wait-for-it.sh
+          ./wait-for-it.sh localhost:5432 -t 30
+
+      - name: Run migrations
+        env:
+          GOOSE_DRIVER: postgres
+          GOOSE_DBSTRING: postgres://testuser:testpassword@localhost:5432/testdb?sslmode=disable
+        run: goose up
+
+      - name: Run tests
+        env:
+          POSTGRES_URL: postgres://testuser:testpassword@localhost:5432/testdb?sslmode=disable
+          AUTH_USERNAME: "admin"
+          AUTH_PASSWORD: "admin"
+          AUTH_BCRYPT_COST: "11"
+          AUTH_SECRET_KEY: "SECRET"
+        run: |
+          go test -v ./cmd/services/database.go ./cmd/services/database_test.go
+          go test -v ./cmd/services/auth.go ./cmd/services/auth_test.go
+          go test -v ./cmd/services/database.go ./cmd/services/blogtag.go ./cmd/services/blogtag_test.go
+          go test -v ./cmd/services/database.go ./cmd/services/blogtag.go ./cmd/services/blogpost.go ./cmd/services/blogpost_test.go
+          go test -v ./cmd/routes/auth.go ./cmd/routes/auth_test.go
+          go test -v ./cmd/routes/auth.go ./cmd/routes/blogtag.go ./cmd/routes/blogtag_test.go
+          go test -v ./cmd/routes/auth.go ./cmd/routes/blogpost.go ./cmd/routes/blogpost_test.go
