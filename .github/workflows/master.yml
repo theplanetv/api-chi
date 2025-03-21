@@ -1,0 +1,33 @@
+name: Github Actions
+run-name: ${{ github.actor }} is running Github Actions 🚀
+on:
+  push:
+    branches:
+      - "*"
+
+jobs:
+  enter-nix-flake-shell:
+    name: Enter nix shell
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup nix
+        uses: cachix/install-nix-action@v27
+
+      - name: Enter nix flake devshell
+        run: nix develop .
+        if: always()
+
+  build-test-docker:
+    name: Build and test docker container
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker, Docker compose and build start
+        uses: hoverkraft-tech/compose-action@v2.0.1
