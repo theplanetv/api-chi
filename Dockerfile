@@ -14,10 +14,8 @@ COPY cmd ./cmd
 COPY internal ./internal
 COPY main.go ./
 COPY start.sh ./
-COPY test.sh ./
 COPY wait-for-it.sh ./
 RUN chmod +x ./start.sh
-RUN chmod +x ./test.sh
 RUN chmod +x ./wait-for-it.sh
 
 # Copy migrations
