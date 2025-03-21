@@ -1,9 +1,9 @@
 package controllers
 
-
 import (
 	"api-chi/cmd/models"
 	"api-chi/cmd/services"
+	"api-chi/internal/convert"
 	"api-chi/internal/message"
 
 	"encoding/json"
@@ -22,6 +22,10 @@ type BlogPostController struct {
 func (c *BlogPostController) Count(w http.ResponseWriter, r *http.Request) {
 	// Retrieve query parameters
 	search := r.URL.Query().Get("search")
+	tagsString := r.URL.Query().Get("tags")
+
+	// Turn string tags query to array
+	tags := convert.StringToBlogtagSlice(tagsString)
 
 	// Open and close database after end
 	err := c.service.Open()
@@ -31,7 +35,7 @@ func (c *BlogPostController) Count(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Execute Count and return if failed or success
-	data, err := c.service.Count(search)
+	data, err := c.service.Count(search, tags)
 	if err != nil {
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, message.Response{
@@ -51,7 +55,7 @@ func (c *BlogPostController) Count(w http.ResponseWriter, r *http.Request) {
 func (c *BlogPostController) GetAll(w http.ResponseWriter, r *http.Request) {
 	// Retrieve query parameters
 	search := r.URL.Query().Get("search")
-    tags := r.URL.Query().Get("tags")
+	tagsString := r.URL.Query().Get("tags")
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 	if err != nil {
 		render.Status(r, http.StatusBadRequest)
@@ -70,6 +74,9 @@ func (c *BlogPostController) GetAll(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
+	// Turn string tags query to array
+	tags := convert.StringToBlogtagSlice(tagsString)
 
 	// Open and close database after end
 	err = c.service.Open()
@@ -98,7 +105,7 @@ func (c *BlogPostController) GetAll(w http.ResponseWriter, r *http.Request) {
 
 func (c *BlogPostController) Create(w http.ResponseWriter, r *http.Request) {
 	// Get JSON from user input
-	input := models.BlogPost{}
+	input := models.BlogPostCreated{}
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, message.Response{
@@ -135,7 +142,7 @@ func (c *BlogPostController) Create(w http.ResponseWriter, r *http.Request) {
 
 func (c *BlogPostController) Update(w http.ResponseWriter, r *http.Request) {
 	// Get JSON from user input
-	input := models.BlogPost{}
+	input := models.BlogPostUpdated{}
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, message.Response{

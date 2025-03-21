@@ -4,7 +4,6 @@ import (
 	"api-chi/cmd/models"
 	"api-chi/cmd/services"
 	"api-chi/internal/message"
-
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -28,6 +27,41 @@ func Test_BlogPostRoutes(t *testing.T) {
 		Name:  "auth-token",
 		Value: token,
 	}
+
+	t.Run("Create success", func(t *testing.T) {
+		input := models.BlogPostCreated{
+			Title:     "new post",
+			Content:   "## Hello new post!",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			IsDraft:   true,
+			Tags:      []models.BlogTag{},
+		}
+		body, _ := json.Marshal(input)
+
+		req := httptest.NewRequest("POST", "/blog/posts", bytes.NewBuffer(body))
+		req.AddCookie(authCookie)
+		res := httptest.NewRecorder()
+
+		r.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusOK, res.Code)
+		var response message.Response
+		err := json.NewDecoder(res.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.Equal(t, message.CREATE_DATA_SUCCESS, response.Message)
+		assert.NotNil(t, response.Data)
+
+		// Convert response.Data to map to extract BlogTag
+		dataMap, ok := response.Data.(map[string]any)
+		if !ok {
+			t.Fatalf("Expected response.Data to be a map, got %T", response.Data)
+		}
+
+		// Extract id from the BlogPost data
+		id = dataMap["id"].(string)
+		assert.NotEmpty(t, id)
+	})
 
 	t.Run("Count success", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/blog/posts/count", nil)
@@ -61,50 +95,14 @@ func Test_BlogPostRoutes(t *testing.T) {
 		assert.NotNil(t, response.Data)
 	})
 
-	t.Run("Create success", func(t *testing.T) {
-		input := models.BlogPost{
-			Title:     "new post",
-			Slug:      "new_post",
-			Content:   "## Hello new post!",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-			IsDraft:   true,
-		}
-		body, _ := json.Marshal(input)
-
-		req := httptest.NewRequest("POST", "/blog/posts", bytes.NewBuffer(body))
-		req.AddCookie(authCookie)
-		res := httptest.NewRecorder()
-
-		r.ServeHTTP(res, req)
-
-		assert.Equal(t, http.StatusOK, res.Code)
-		var response message.Response
-		err := json.NewDecoder(res.Body).Decode(&response)
-		assert.NoError(t, err)
-		assert.Equal(t, message.CREATE_DATA_SUCCESS, response.Message)
-		assert.NotNil(t, response.Data)
-
-		// Convert response.Data to map to extract BlogTag
-		dataMap, ok := response.Data.(map[string]interface{})
-		if !ok {
-			t.Fatalf("Expected response.Data to be a map, got %T", response.Data)
-		}
-
-		// Extract id from the BlogPost data
-		id = dataMap["id"].(string)
-		assert.NotEmpty(t, id)
-	})
-
 	t.Run("Update success", func(t *testing.T) {
 		if id == "" {
 			t.Fatal("ID must be set before running Update test")
 		}
 
-		input := models.BlogPost{
+		input := models.BlogPostUpdated{
 			Id:        id,
 			Title:     "My test post",
-			Slug:      "my_test_post",
 			Content:   "## Hello my test post!",
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
