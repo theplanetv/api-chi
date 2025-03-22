@@ -56,6 +56,66 @@ func (s *BlogPostService) Count(search string, tags []models.BlogTag) (int, erro
 	return value, nil
 }
 
+func (s *BlogPostService) Get(id string) (models.BlogPostContentWithTags, error) {
+	// post SQL query
+	postSql := `
+		SELECT
+			id,
+			title,
+			slug,
+			content,
+			created_at,
+			updated_at,
+			is_draft
+		FROM blog_post
+		WHERE id = @id;
+	`
+
+	// Add tag filters if tags are provided
+	args := pgx.NamedArgs{
+		"id": id,
+	}
+
+	// Execute post sql
+	value := models.BlogPostContentWithTags{}
+	err := s.Conn.QueryRow(config.CTX, postSql, args).Scan(
+		&value.Id,
+		&value.Title,
+		&value.Slug,
+		&value.Content,
+		&value.CreatedAt,
+		&value.UpdatedAt,
+		&value.IsDraft,
+	)
+	if err != nil {
+		return value, err
+	}
+
+	// Get tags from sql using parameterized query
+	tagSql := `
+			SELECT blog_tag.id, blog_tag.name
+			FROM blog_tag
+			INNER JOIN blog_post_tag ON blog_post_tag.tag_id = blog_tag.id
+			WHERE blog_post_tag.post_id = $1;`
+	tagRows, err := s.Conn.Query(config.CTX, tagSql, value.Id)
+	if err != nil {
+		return value, err
+	}
+
+	for tagRows.Next() {
+		tagItem := models.BlogTag{}
+		if err := tagRows.Scan(
+			&tagItem.Id,
+			&tagItem.Name,
+		); err != nil {
+			return value, err
+		}
+		value.Tags = append(value.Tags, tagItem)
+	}
+
+	return value, nil
+}
+
 func (s *BlogPostService) GetAll(search string, tags []models.BlogTag, limit int, page int) ([]models.BlogPostWithTags, error) {
 	// Set default range for limit
 	if limit < 10 {
@@ -163,7 +223,7 @@ func (s *BlogPostService) GetAll(search string, tags []models.BlogTag, limit int
 	return value, nil
 }
 
-func (s *BlogPostService) Create(input *models.BlogPostCreated) (models.BlogPostWithTags, error) {
+func (s *BlogPostService) Create(input *models.BlogPostCreated) (models.BlogPostContentWithTags, error) {
 	// Get slug string
 	slugString := slug.Make(input.Title)
 
@@ -181,7 +241,7 @@ func (s *BlogPostService) Create(input *models.BlogPostCreated) (models.BlogPost
 		"updated_at": input.UpdatedAt,
 		"is_draft":   input.IsDraft,
 	}
-	value := models.BlogPostWithTags{}
+	value := models.BlogPostContentWithTags{}
 	err := s.Conn.QueryRow(config.CTX, postSql, postArgs).Scan(
 		&value.Id,
 		&value.Title,
@@ -238,7 +298,7 @@ func (s *BlogPostService) Create(input *models.BlogPostCreated) (models.BlogPost
 	return value, nil
 }
 
-func (s *BlogPostService) Update(input *models.BlogPostUpdated) (models.BlogPostWithTags, error) {
+func (s *BlogPostService) Update(input *models.BlogPostUpdated) (models.BlogPostContentWithTags, error) {
 	// Get slug string
 	slugString := slug.Make(input.Title)
 
@@ -263,7 +323,7 @@ func (s *BlogPostService) Update(input *models.BlogPostUpdated) (models.BlogPost
 		"updated_at": input.UpdatedAt,
 		"is_draft":   input.IsDraft,
 	}
-	value := models.BlogPostWithTags{}
+	value := models.BlogPostContentWithTags{}
 	err := s.Conn.QueryRow(config.CTX, sql, args).Scan(
 		&value.Id,
 		&value.Title,

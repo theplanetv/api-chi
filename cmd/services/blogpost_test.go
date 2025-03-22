@@ -31,7 +31,7 @@ func Test_BlogPostService(t *testing.T) {
 	defer tagService.Remove(tagValue2.Id)
 	defer tagService.Remove(tagValue3.Id)
 
-	t.Run("Create success all attributes", func(t *testing.T) {
+	t.Run("Create success", func(t *testing.T) {
 		// Connect database
 		err := postService.Open()
 		defer postService.Close()
@@ -52,8 +52,10 @@ func Test_BlogPostService(t *testing.T) {
 		value, err := postService.Create(&input)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, value)
+		assert.IsType(t, value, models.BlogPostContentWithTags{})
 		assert.Equal(t, value.Title, input.Title)
 		assert.Equal(t, value.Slug, slug.Make(input.Title))
+		assert.Equal(t, value.Content, input.Content)
 		assert.WithinDuration(t, value.CreatedAt, input.CreatedAt, time.Millisecond)
 		assert.WithinDuration(t, value.UpdatedAt, input.UpdatedAt, time.Millisecond)
 		assert.Equal(t, value.IsDraft, input.IsDraft)
@@ -88,11 +90,17 @@ func Test_BlogPostService(t *testing.T) {
 		value, err := postService.Update(&input)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, value)
+		assert.IsType(t, value, models.BlogPostContentWithTags{})
 		assert.Equal(t, value.Title, input.Title)
 		assert.Equal(t, value.Slug, slug.Make(input.Title))
+		assert.Equal(t, value.Content, input.Content)
 		assert.WithinDuration(t, value.CreatedAt, input.CreatedAt, time.Millisecond)
 		assert.WithinDuration(t, value.UpdatedAt, input.UpdatedAt, time.Millisecond)
 		assert.Equal(t, value.IsDraft, input.IsDraft)
+		for _, tag := range value.Tags {
+			assert.NotEmpty(t, tag.Id)
+			assert.NotEmpty(t, tag.Name)
+		}
 	})
 
 	t.Run("Remove success", func(t *testing.T) {
@@ -105,6 +113,42 @@ func Test_BlogPostService(t *testing.T) {
 		value, err := postService.Remove(id)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, value)
+	})
+
+	t.Run("Get success", func(t *testing.T) {
+		// Connect database
+		err := postService.Open()
+		defer postService.Close()
+		assert.NoError(t, err)
+
+		// Create data
+		tagsPost := []models.BlogTag{tagValue1, tagValue2}
+		inputPost := models.BlogPostCreated{
+			Title:     "new post",
+			Content:   "## Hello new post!",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			IsDraft:   true,
+			Tags:      tagsPost,
+		}
+		valuePost, _ := postService.Create(&inputPost)
+		defer postService.Remove(valuePost.Id)
+
+		// Get all database
+		data, err := postService.Get(valuePost.Id)
+		assert.NoError(t, err)
+
+		assert.IsType(t, data, models.BlogPostContentWithTags{})
+		assert.NotEmpty(t, data.Id)
+		assert.NotEmpty(t, data.Title)
+		assert.NotEmpty(t, data.Slug)
+		assert.NotEmpty(t, data.CreatedAt)
+		assert.NotEmpty(t, data.UpdatedAt)
+		assert.NotEmpty(t, data.IsDraft)
+		for _, tag := range data.Tags {
+			assert.NotEmpty(t, tag.Id)
+			assert.NotEmpty(t, tag.Name)
+		}
 	})
 
 	t.Run("GetAll default success", func(t *testing.T) {
@@ -152,14 +196,18 @@ func Test_BlogPostService(t *testing.T) {
 
 		assert.IsType(t, data[0], models.BlogPostWithTags{})
 		count := 0
-		for _, postItem := range data {
+		for _, post := range data {
 			count += 1
-			assert.NotEmpty(t, postItem.Id)
-			assert.NotEmpty(t, postItem.Title)
-			assert.NotEmpty(t, postItem.Slug)
-			assert.NotEmpty(t, postItem.CreatedAt)
-			assert.NotEmpty(t, postItem.UpdatedAt)
-			assert.NotEmpty(t, postItem.IsDraft)
+			assert.NotEmpty(t, post.Id)
+			assert.NotEmpty(t, post.Title)
+			assert.NotEmpty(t, post.Slug)
+			assert.NotEmpty(t, post.CreatedAt)
+			assert.NotEmpty(t, post.UpdatedAt)
+			assert.NotEmpty(t, post.IsDraft)
+			for _, tag := range post.Tags {
+				assert.NotEmpty(t, tag.Id)
+				assert.NotEmpty(t, tag.Name)
+			}
 		}
 		assert.Equal(t, count, 1)
 	})

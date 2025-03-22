@@ -77,6 +77,20 @@ func Test_BlogPostRoutes(t *testing.T) {
 		assert.NotNil(t, response.Data)
 	})
 
+	t.Run("Get success", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/blog/posts/"+id, nil)
+		res := httptest.NewRecorder()
+
+		r.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusOK, res.Code)
+		var response message.Response
+		err := json.NewDecoder(res.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.Equal(t, message.GET_DATA_SUCCESS, response.Message)
+		assert.NotNil(t, response.Data)
+	})
+
 	t.Run("GetAll success", func(t *testing.T) {
 		search := ""
 		limit := 10
