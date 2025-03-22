@@ -1,13 +1,16 @@
-FROM golang:1.23.7-bookworm
+FROM golang:1.23.7-alpine
 
 WORKDIR /api-chi
+
+# Install bash
+RUN apk add --no-cache bash
 
 # Copy package files and download
 COPY go.mod go.sum ./
 RUN go mod download
 
 # Install goose database migration
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN go install -tags='no_clickhouse no_libsql no_mssql no_mysql no_sqlite3 no_vertica no_ydb' github.com/pressly/goose/v3/cmd/goose@latest
 
 # Copy source code
 COPY cmd ./cmd
