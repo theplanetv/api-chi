@@ -13,6 +13,7 @@ const (
 
 // Failed message
 const (
+	INVALID_INPUT      = "Invalid input!"
 	AUTH_FAILED        = "Authorize failed!"
 	LOGIN_FAILED       = "Login failed!"
 	GET_DATA_FAILED    = "Get data failed!"

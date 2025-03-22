@@ -14,6 +14,7 @@ func BlogPostRoutes(r chi.Router) {
 	r.Route("/blog/posts", func(r chi.Router) {
 		r.Get("/count", controller.Count)
 		r.Get("/", controller.GetAll)
+		r.Get("/{id}", controller.Get)
 
 		r.With(authMiddleware.CheckLogin).Post("/", controller.Create)
 		r.With(authMiddleware.CheckLogin).Patch("/", controller.Update)
