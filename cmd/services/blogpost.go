@@ -23,17 +23,20 @@ func (s *BlogPostService) Close() {
 }
 
 func (s *BlogPostService) Count(search string, tags []models.BlogTag) (int, error) {
-	// Execute SQL
-	sql := `
-		SELECT COUNT(blog_post.id) FROM blog_post
-		INNER JOIN blog_post_tag ON blog_post_tag.post_id = blog_post.id
-		INNER JOIN blog_tag ON blog_post_tag.tag_id = blog_tag.id
-		WHERE title ILIKE '%' || @search || '%'
-	`
+	// Base SQL query
+	sql := "SELECT COUNT(blog_post.id) FROM blog_post "
 	args := pgx.NamedArgs{
 		"search": search,
 	}
+
+	// Add JOINs and tag filter only if tags are provided
 	if len(tags) > 0 {
+		sql += `
+			INNER JOIN blog_post_tag ON blog_post_tag.post_id = blog_post.id
+			INNER JOIN blog_tag ON blog_post_tag.tag_id = blog_tag.id
+			WHERE blog_post.title ILIKE '%' || @search || '%'
+		`
+
 		// Add tag names to the query
 		tagNames := make([]string, len(tags))
 		for i, tag := range tags {
@@ -44,6 +47,8 @@ func (s *BlogPostService) Count(search string, tags []models.BlogTag) (int, erro
 
 		// Add the tag filter to the query
 		sql += fmt.Sprintf(" AND blog_tag.name IN (%s)", strings.Join(tagNames, ", "))
+	} else {
+		sql += " WHERE blog_post.title ILIKE '%' || @search || '%'"
 	}
 
 	value := 0
@@ -141,9 +146,6 @@ func (s *BlogPostService) GetAll(search string, tags []models.BlogTag, limit int
 			blog_post.updated_at,
 			blog_post.is_draft
 		FROM blog_post
-		INNER JOIN blog_post_tag ON blog_post_tag.post_id = blog_post.id
-		INNER JOIN blog_tag ON blog_post_tag.tag_id = blog_tag.id
-		WHERE blog_post.title ILIKE '%' || @search || '%'
 	`
 
 	// Add tag filters if tags are provided
@@ -154,6 +156,12 @@ func (s *BlogPostService) GetAll(search string, tags []models.BlogTag, limit int
 	}
 
 	if len(tags) > 0 {
+		postSql += `
+			INNER JOIN blog_post_tag ON blog_post_tag.post_id = blog_post.id
+			INNER JOIN blog_tag ON blog_post_tag.tag_id = blog_tag.id
+			WHERE title ILIKE '%' || @search || '%'
+		`
+
 		// Add tag names to the query
 		tagNames := make([]string, len(tags))
 		for i, tag := range tags {
@@ -168,6 +176,8 @@ func (s *BlogPostService) GetAll(search string, tags []models.BlogTag, limit int
 		// Add the HAVING clause to ensure all tags are matched
 		postSql += " GROUP BY blog_post.id HAVING COUNT(DISTINCT blog_tag.id) = @tag_count"
 		args["tag_count"] = len(tags)
+	} else {
+		postSql += "WHERE title ILIKE '%' || @search || '%'"
 	}
 
 	// Add pagination
