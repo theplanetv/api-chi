@@ -37,14 +37,8 @@ func Test_BlogTagService(t *testing.T) {
 	t.Run("Count success", func(t *testing.T) {
 		// Connect database
 		err := service.Open()
-		defer service.Close()
 		assert.NoError(t, err)
-
-		// Declare input
-		input := models.BlogTag{
-			Name: "test tag",
-		}
-		value, _ := service.Create(&input)
+		defer service.Close()
 
 		// Declare input
 		search := ""
@@ -52,10 +46,7 @@ func Test_BlogTagService(t *testing.T) {
 		// Count database
 		count, err := service.Count(search)
 		assert.NoError(t, err)
-		assert.Greater(t, count, 0)
-
-		// Remove data after test
-		service.Remove(value.Id)
+		assert.Equal(t, count, 1)
 	})
 
 	t.Run("GetAll success", func(t *testing.T) {

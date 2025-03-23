@@ -29,7 +29,8 @@ func Test_AuthMiddleware(t *testing.T) {
 	// Mock a next handler to test middleware chain behavior
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, "Authenticated!")
+		_, err := fmt.Fprintln(w, "Authenticated!")
+		assert.NoError(t, err)
 	})
 
 	t.Run("Authorized request - valid token", func(t *testing.T) {

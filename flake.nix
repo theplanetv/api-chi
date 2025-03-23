@@ -22,6 +22,7 @@
                 # Golang
                 go
                 goose # Database migration
+                golangci-lint
               ];
             };
         });
