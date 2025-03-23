@@ -12,7 +12,8 @@ import (
 func Test_BlogPostService(t *testing.T) {
 	id := ""
 	tagService := BlogTagService{}
-	tagService.Open()
+	err := tagService.Open()
+	assert.NoError(t, err)
 	defer tagService.Close()
 	postService := BlogPostService{}
 	tag1 := models.BlogTag{
@@ -24,12 +25,20 @@ func Test_BlogPostService(t *testing.T) {
 	tag3 := models.BlogTag{
 		Name: "life",
 	}
-	tagValue1, _ := tagService.Create(&tag1)
-	tagValue2, _ := tagService.Create(&tag2)
-	tagValue3, _ := tagService.Create(&tag3)
-	defer tagService.Remove(tagValue1.Id)
-	defer tagService.Remove(tagValue2.Id)
-	defer tagService.Remove(tagValue3.Id)
+	tagValue1, err := tagService.Create(&tag1)
+	assert.NoError(t, err)
+	tagValue2, err := tagService.Create(&tag2)
+	assert.NoError(t, err)
+	tagValue3, err := tagService.Create(&tag3)
+	assert.NoError(t, err)
+	defer func() {
+		_, err = tagService.Remove(tagValue1.Id)
+		assert.NoError(t, err)
+		_, err = tagService.Remove(tagValue2.Id)
+		assert.NoError(t, err)
+		_, err = tagService.Remove(tagValue3.Id)
+		assert.NoError(t, err)
+	}()
 
 	t.Run("Create success", func(t *testing.T) {
 		// Connect database
@@ -132,7 +141,10 @@ func Test_BlogPostService(t *testing.T) {
 			Tags:      tagsPost,
 		}
 		valuePost, _ := postService.Create(&inputPost)
-		defer postService.Remove(valuePost.Id)
+		defer func() {
+			_, err = postService.Remove(valuePost.Id)
+			assert.NoError(t, err)
+		}()
 
 		// Get all database
 		data, err := postService.Get(valuePost.Id)
@@ -178,8 +190,12 @@ func Test_BlogPostService(t *testing.T) {
 		}
 		valuePost1, _ := postService.Create(&inputPost1)
 		valuePost2, _ := postService.Create(&inputPost2)
-		defer postService.Remove(valuePost1.Id)
-		defer postService.Remove(valuePost2.Id)
+		defer func() {
+			_, err = postService.Remove(valuePost1.Id)
+			assert.NoError(t, err)
+			_, err = postService.Remove(valuePost2.Id)
+			assert.NoError(t, err)
+		}()
 
 		// Declare input
 		search := ""
@@ -236,8 +252,12 @@ func Test_BlogPostService(t *testing.T) {
 		}
 		valuePost1, _ := postService.Create(&inputPost1)
 		valuePost2, _ := postService.Create(&inputPost2)
-		defer postService.Remove(valuePost1.Id)
-		defer postService.Remove(valuePost2.Id)
+		defer func() {
+			_, err = postService.Remove(valuePost1.Id)
+			assert.NoError(t, err)
+			_, err = postService.Remove(valuePost2.Id)
+			assert.NoError(t, err)
+		}()
 
 		// Declare input
 		search := "TEST"
@@ -294,8 +314,12 @@ func Test_BlogPostService(t *testing.T) {
 		}
 		valuePost1, _ := postService.Create(&inputPost1)
 		valuePost2, _ := postService.Create(&inputPost2)
-		defer postService.Remove(valuePost1.Id)
-		defer postService.Remove(valuePost2.Id)
+		defer func() {
+			_, err = postService.Remove(valuePost1.Id)
+			assert.NoError(t, err)
+			_, err = postService.Remove(valuePost2.Id)
+			assert.NoError(t, err)
+		}()
 
 		// Declare input
 		search := ""
@@ -355,8 +379,12 @@ func Test_BlogPostService(t *testing.T) {
 		}
 		valuePost1, _ := postService.Create(&inputPost1)
 		valuePost2, _ := postService.Create(&inputPost2)
-		defer postService.Remove(valuePost1.Id)
-		defer postService.Remove(valuePost2.Id)
+		defer func() {
+			_, err = postService.Remove(valuePost1.Id)
+			assert.NoError(t, err)
+			_, err = postService.Remove(valuePost2.Id)
+			assert.NoError(t, err)
+		}()
 
 		// Declare input
 		search := ""
@@ -395,8 +423,12 @@ func Test_BlogPostService(t *testing.T) {
 		}
 		valuePost1, _ := postService.Create(&inputPost1)
 		valuePost2, _ := postService.Create(&inputPost2)
-		defer postService.Remove(valuePost1.Id)
-		defer postService.Remove(valuePost2.Id)
+		defer func() {
+			_, err = postService.Remove(valuePost1.Id)
+			assert.NoError(t, err)
+			_, err = postService.Remove(valuePost2.Id)
+			assert.NoError(t, err)
+		}()
 
 		// Declare input
 		search := "TEST"
@@ -435,8 +467,12 @@ func Test_BlogPostService(t *testing.T) {
 		}
 		valuePost1, _ := postService.Create(&inputPost1)
 		valuePost2, _ := postService.Create(&inputPost2)
-		defer postService.Remove(valuePost1.Id)
-		defer postService.Remove(valuePost2.Id)
+		defer func() {
+			_, err = postService.Remove(valuePost1.Id)
+			assert.NoError(t, err)
+			_, err = postService.Remove(valuePost2.Id)
+			assert.NoError(t, err)
+		}()
 
 		// Declare input
 		search := ""
