@@ -22,7 +22,7 @@ func createTestToken(username string, expiration time.Duration, secretKey []byte
 	return token.SignedString(secretKey)
 }
 
-func TestCheckLogin(t *testing.T) {
+func Test_AuthMiddleware(t *testing.T) {
 	//authService := &services.AuthService{}
 	authMiddleware := AuthMiddleware{} //service: authService}
 
