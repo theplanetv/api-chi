@@ -183,6 +183,122 @@ func Test_BlogPostService(t *testing.T) {
 
 		// Declare input
 		search := ""
+		tagsSearch := []models.BlogTag{}
+		limit := 10
+		page := 1
+
+		// Get all database
+		data, err := postService.GetAll(search, tagsSearch, limit, page)
+		assert.NoError(t, err)
+
+		assert.IsType(t, data[0], models.BlogPostWithTags{})
+		count := 0
+		for _, post := range data {
+			count += 1
+			assert.NotEmpty(t, post.Id)
+			assert.NotEmpty(t, post.Title)
+			assert.NotEmpty(t, post.Slug)
+			assert.NotEmpty(t, post.CreatedAt)
+			assert.NotEmpty(t, post.UpdatedAt)
+			assert.NotEmpty(t, post.IsDraft)
+			for _, tag := range post.Tags {
+				assert.NotEmpty(t, tag.Id)
+				assert.NotEmpty(t, tag.Name)
+			}
+		}
+		assert.Equal(t, count, 2)
+	})
+
+	t.Run("GetAll success with search", func(t *testing.T) {
+		// Connect database
+		err := postService.Open()
+		defer postService.Close()
+		assert.NoError(t, err)
+
+		// Create data
+		tagsPost1 := []models.BlogTag{tagValue1, tagValue2}
+		inputPost1 := models.BlogPostCreated{
+			Title:     "new post",
+			Content:   "## Hello new post!",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			IsDraft:   true,
+			Tags:      tagsPost1,
+		}
+		tagsPost2 := []models.BlogTag{tagValue2, tagValue3}
+		inputPost2 := models.BlogPostCreated{
+			Title:     "My test post",
+			Content:   "## Hello my test post!",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			IsDraft:   true,
+			Tags:      tagsPost2,
+		}
+		valuePost1, _ := postService.Create(&inputPost1)
+		valuePost2, _ := postService.Create(&inputPost2)
+		defer postService.Remove(valuePost1.Id)
+		defer postService.Remove(valuePost2.Id)
+
+		// Declare input
+		search := "TEST"
+		tagsSearch := []models.BlogTag{}
+		limit := 10
+		page := 1
+
+		// Get all database
+		data, err := postService.GetAll(search, tagsSearch, limit, page)
+		assert.NoError(t, err)
+
+		assert.IsType(t, data[0], models.BlogPostWithTags{})
+		count := 0
+		for _, post := range data {
+			count += 1
+			assert.NotEmpty(t, post.Id)
+			assert.NotEmpty(t, post.Title)
+			assert.NotEmpty(t, post.Slug)
+			assert.NotEmpty(t, post.CreatedAt)
+			assert.NotEmpty(t, post.UpdatedAt)
+			assert.NotEmpty(t, post.IsDraft)
+			for _, tag := range post.Tags {
+				assert.NotEmpty(t, tag.Id)
+				assert.NotEmpty(t, tag.Name)
+			}
+		}
+		assert.Equal(t, count, 1)
+	})
+
+	t.Run("GetAll success with tags", func(t *testing.T) {
+		// Connect database
+		err := postService.Open()
+		defer postService.Close()
+		assert.NoError(t, err)
+
+		// Create data
+		tagsPost1 := []models.BlogTag{tagValue1, tagValue2}
+		inputPost1 := models.BlogPostCreated{
+			Title:     "new post",
+			Content:   "## Hello new post!",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			IsDraft:   true,
+			Tags:      tagsPost1,
+		}
+		tagsPost2 := []models.BlogTag{tagValue2, tagValue3}
+		inputPost2 := models.BlogPostCreated{
+			Title:     "My test post",
+			Content:   "## Hello my test post!",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			IsDraft:   true,
+			Tags:      tagsPost2,
+		}
+		valuePost1, _ := postService.Create(&inputPost1)
+		valuePost2, _ := postService.Create(&inputPost2)
+		defer postService.Remove(valuePost1.Id)
+		defer postService.Remove(valuePost2.Id)
+
+		// Declare input
+		search := ""
 		tagsSearch := []models.BlogTag{
 			tagValue1,
 			tagValue2,
@@ -244,14 +360,93 @@ func Test_BlogPostService(t *testing.T) {
 
 		// Declare input
 		search := ""
+		tagsSearch := []models.BlogTag{}
+
+		// Count database
+		count, err := postService.Count(search, tagsSearch)
+		assert.NoError(t, err)
+		assert.Equal(t, count, 2)
+	})
+
+	t.Run("Count success with search", func(t *testing.T) {
+		// Connect database
+		err := postService.Open()
+		defer postService.Close()
+		assert.NoError(t, err)
+
+		// Create data
+		tagsPost1 := []models.BlogTag{tagValue1, tagValue2}
+		inputPost1 := models.BlogPostCreated{
+			Title:     "new post",
+			Content:   "## Hello new post!",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			IsDraft:   true,
+			Tags:      tagsPost1,
+		}
+		tagsPost2 := []models.BlogTag{tagValue2, tagValue3}
+		inputPost2 := models.BlogPostCreated{
+			Title:     "My test post",
+			Content:   "## Hello my test post!",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			IsDraft:   true,
+			Tags:      tagsPost2,
+		}
+		valuePost1, _ := postService.Create(&inputPost1)
+		valuePost2, _ := postService.Create(&inputPost2)
+		defer postService.Remove(valuePost1.Id)
+		defer postService.Remove(valuePost2.Id)
+
+		// Declare input
+		search := "TEST"
+		tagsSearch := []models.BlogTag{}
+
+		// Count database
+		count, err := postService.Count(search, tagsSearch)
+		assert.NoError(t, err)
+		assert.Equal(t, count, 1)
+	})
+
+	t.Run("Count success with tags", func(t *testing.T) {
+		// Connect database
+		err := postService.Open()
+		defer postService.Close()
+		assert.NoError(t, err)
+
+		// Create data
+		tagsPost1 := []models.BlogTag{tagValue1, tagValue2}
+		inputPost1 := models.BlogPostCreated{
+			Title:     "new post",
+			Content:   "## Hello new post!",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			IsDraft:   true,
+			Tags:      tagsPost1,
+		}
+		tagsPost2 := []models.BlogTag{tagValue2, tagValue3}
+		inputPost2 := models.BlogPostCreated{
+			Title:     "My test post",
+			Content:   "## Hello my test post!",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			IsDraft:   true,
+			Tags:      tagsPost2,
+		}
+		valuePost1, _ := postService.Create(&inputPost1)
+		valuePost2, _ := postService.Create(&inputPost2)
+		defer postService.Remove(valuePost1.Id)
+		defer postService.Remove(valuePost2.Id)
+
+		// Declare input
+		search := ""
 		tagsSearch := []models.BlogTag{
 			tagValue1,
-			tagValue2,
 		}
 
 		// Count database
 		count, err := postService.Count(search, tagsSearch)
 		assert.NoError(t, err)
-		assert.Greater(t, count, 0)
+		assert.Equal(t, count, 1)
 	})
 }
