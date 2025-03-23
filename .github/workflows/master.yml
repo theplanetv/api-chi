@@ -7,33 +7,7 @@ on:
 
 jobs:
   enter-nix-flake-shell:
-    name: Enter nix shell
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-
-      - name: Setup nix
-        uses: cachix/install-nix-action@v27
-
-      - name: Enter nix flake devshell
-        run: nix develop .
-        if: always()
-
-  build-docker:
-    name: Build docker container
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-
-      - name: Setup Docker, Docker compose and build start
-        uses: hoverkraft-tech/compose-action@v2
-
-  test:
-    name: Run tests
+    name: Enter nix flake shell
     runs-on: ubuntu-24.04
 
     services:
@@ -51,15 +25,18 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.23"
+      - name: Setup nix
+        uses: cachix/install-nix-action@v27
+
+      - name: Enter nix devShell flake
+        uses: nicknovitski/nix-develop@v1
+
+      - name: Run linting
+        run: golangci-lint run
 
       - name: Install dependencies
         run: |
           go mod download
-          go install github.com/pressly/goose/v3/cmd/goose@latest
 
       - name: Wait for PostgreSQL to be ready
         run: |
@@ -88,3 +65,14 @@ jobs:
           go test -v ./cmd/routes/auth.go ./cmd/routes/auth_test.go
           go test -v ./cmd/routes/auth.go ./cmd/routes/blogtag.go ./cmd/routes/blogtag_test.go
           go test -v ./cmd/routes/auth.go ./cmd/routes/blogpost.go ./cmd/routes/blogpost_test.go
+
+  build-docker:
+    name: Build docker container
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker, Docker compose and build start
+        uses: hoverkraft-tech/compose-action@v2
