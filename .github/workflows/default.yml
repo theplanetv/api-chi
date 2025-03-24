@@ -76,3 +76,10 @@ jobs:
 
       - name: Setup Docker, Docker compose and build start
         uses: hoverkraft-tech/compose-action@v2
+
+  security-scan:
+    name: Security scan
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Renovate Bot GitHub Action
+        uses: renovatebot/github-action@v41.0.16
