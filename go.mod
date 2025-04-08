@@ -8,7 +8,7 @@ require (
 	github.com/go-chi/render v1.0.3
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gosimple/slug v1.15.0
-	github.com/jackc/pgx/v5 v5.7.2
+	github.com/jackc/pgx/v5 v5.7.4
 	github.com/stretchr/testify v1.10.0
 )
 
