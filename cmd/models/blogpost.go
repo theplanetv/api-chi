@@ -8,7 +8,7 @@ type BlogPostCreated struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	IsDraft   bool      `json:"is_draft"`
-	Tags      []BlogTag
+	Tags      []BlogTag `json:"tags"`
 }
 
 type BlogPostUpdated struct {
@@ -18,7 +18,7 @@ type BlogPostUpdated struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	IsDraft   bool      `json:"is_draft"`
-	Tags      []BlogTag
+	Tags      []BlogTag `json:"tags"`
 }
 
 type BlogPostWithTags struct {
@@ -28,7 +28,7 @@ type BlogPostWithTags struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	IsDraft   bool      `json:"is_draft"`
-	Tags      []BlogTag
+	Tags      []BlogTag `json:"tags"`
 }
 
 type BlogPostContentWithTags struct {
@@ -39,5 +39,5 @@ type BlogPostContentWithTags struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	IsDraft   bool      `json:"is_draft"`
-	Tags      []BlogTag
+	Tags      []BlogTag `json:"tags"`
 }
