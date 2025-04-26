@@ -61,7 +61,7 @@ func (s *BlogPostService) Count(search string, tags []models.BlogTag) (int, erro
 	return value, nil
 }
 
-func (s *BlogPostService) Get(id string) (models.BlogPostContentWithTags, error) {
+func (s *BlogPostService) GetWithSlug(slug string) (models.BlogPostContentWithTags, error) {
 	// post SQL query
 	postSql := `
 		SELECT
@@ -73,12 +73,12 @@ func (s *BlogPostService) Get(id string) (models.BlogPostContentWithTags, error)
 			updated_at,
 			is_draft
 		FROM blog_post
-		WHERE id = @id;
+		WHERE slug = @slug;
 	`
 
 	// Add tag filters if tags are provided
 	args := pgx.NamedArgs{
-		"id": id,
+		"slug": slug,
 	}
 
 	// Execute post sql

@@ -103,9 +103,9 @@ func (c *BlogPostController) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (c *BlogPostController) Get(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-	if id == "" {
+func (c *BlogPostController) GetWithSlug(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+	if slug == "" {
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, message.Response{
 			Message: message.INVALID_INPUT,
@@ -122,7 +122,7 @@ func (c *BlogPostController) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get data and return if failed or success
-	data, err := c.service.Get(id)
+	data, err := c.service.GetWithSlug(slug)
 	if err != nil {
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, message.Response{
