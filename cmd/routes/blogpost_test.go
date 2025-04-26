@@ -20,6 +20,7 @@ func Test_BlogPostRoutes(t *testing.T) {
 	r := chi.NewRouter()
 	BlogPostRoutes(r)
 	id := ""
+	slug := ""
 	service := services.AuthService{}
 	token, _ := service.GenerateToken(&models.Auth{Username: "admin"})
 
@@ -61,6 +62,10 @@ func Test_BlogPostRoutes(t *testing.T) {
 		// Extract id from the BlogPost data
 		id = dataMap["id"].(string)
 		assert.NotEmpty(t, id)
+
+		// Extract slug from the BlogPost data
+		slug = dataMap["slug"].(string)
+		assert.NotEmpty(t, slug)
 	})
 
 	t.Run("Count success", func(t *testing.T) {
@@ -77,8 +82,8 @@ func Test_BlogPostRoutes(t *testing.T) {
 		assert.NotNil(t, response.Data)
 	})
 
-	t.Run("Get success", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/blog/posts/"+id, nil)
+	t.Run("Get with slug success", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/blog/posts/slug/"+slug, nil)
 		res := httptest.NewRecorder()
 
 		r.ServeHTTP(res, req)

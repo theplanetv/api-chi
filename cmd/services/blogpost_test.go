@@ -124,7 +124,7 @@ func Test_BlogPostService(t *testing.T) {
 		assert.NotEmpty(t, value)
 	})
 
-	t.Run("Get success", func(t *testing.T) {
+	t.Run("Get with slug success", func(t *testing.T) {
 		// Connect database
 		err := postService.Open()
 		defer postService.Close()
@@ -147,7 +147,7 @@ func Test_BlogPostService(t *testing.T) {
 		}()
 
 		// Get all database
-		data, err := postService.Get(valuePost.Id)
+		data, err := postService.GetWithSlug(valuePost.Slug)
 		assert.NoError(t, err)
 
 		assert.IsType(t, data, models.BlogPostContentWithTags{})
