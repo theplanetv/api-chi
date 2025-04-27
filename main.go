@@ -5,6 +5,7 @@ import (
 	"api-chi/cmd/routes"
 	"log"
 	"net/http"
+	"fmt"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -38,6 +39,8 @@ func main() {
 		routes.BlogPostRoutes(r)
 		routes.BlogTagRoutes(r)
 	})
+
+	fmt.Println("Starting API server on port", config.API_PORT)
 
 	// Start the HTTP server on the specified API port
 	err := http.ListenAndServe(":"+config.API_PORT, r)

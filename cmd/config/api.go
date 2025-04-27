@@ -8,5 +8,5 @@ var (
 )
 
 func LoadApiConfig() {
-	API_PORT = os.Getenv("API_PORT")
+	API_PORT = os.Getenv("API_CHI_PORT")
 }
