@@ -52,10 +52,10 @@ jobs:
       - name: Run tests
         env:
           POSTGRES_URL: postgres://testuser:testpassword@localhost:5432/testdb?sslmode=disable
-          AUTH_USERNAME: "admin"
-          AUTH_PASSWORD: "admin"
-          AUTH_BCRYPT_COST: "11"
-          AUTH_SECRET_KEY: "SECRET"
+          API_CHI_AUTH_USERNAME: "admin"
+          API_CHI_AUTH_PASSWORD: "admin"
+          API_CHI_AUTH_BCRYPT_COST: "11"
+          API_CHI_AUTH_SECRET_KEY: "SECRET"
         run: |
           go test -v ./cmd/services/database.go ./cmd/services/database_test.go
           go test -v ./cmd/services/auth.go ./cmd/services/auth_test.go
