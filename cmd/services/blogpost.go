@@ -236,6 +236,124 @@ func (s *BlogPostService) GetAll(search string, tags []models.BlogTag, limit int
 	return value, nil
 }
 
+func (s *BlogPostService) GetAllWithContent(search string, tags []models.BlogTag, limit int, page int) ([]models.BlogPostContentWithTags, error) {
+	// Set default range for limit
+	if limit < 10 {
+		limit = 10
+	} else if limit > 50 {
+		limit = 50
+	}
+
+	// Set default range for page
+	if page < 1 {
+		page = 0
+	} else {
+		page -= 1
+	}
+
+
+	// post SQL query
+	postSql := `
+		SELECT
+			blog_post.id,
+			blog_post.title,
+			blog_post.slug,
+			blog_post.content,
+			blog_post.created_at,
+			blog_post.updated_at,
+			blog_post.is_draft
+		FROM blog_post
+	`
+
+	// Add tag filters if tags are provided
+	args := pgx.NamedArgs{
+		"search": search,
+		"limit":  limit,
+		"page":   page * limit,
+	}
+
+	if len(tags) > 0 {
+		postSql += `
+			INNER JOIN blog_post_tag ON blog_post_tag.post_id = blog_post.id
+			INNER JOIN blog_tag ON blog_post_tag.tag_id = blog_tag.id
+			WHERE blog_post.title ILIKE '%' || @search || '%'
+		`
+
+		// Add tag names to the query
+		tagNames := make([]string, len(tags))
+		for i, tag := range tags {
+			paramName := fmt.Sprintf("tag_%d", i)
+			args[paramName] = tag.Name
+			tagNames[i] = fmt.Sprintf("@%s", paramName)
+		}
+
+		// Add the tag filter to the query
+		postSql += fmt.Sprintf(" AND blog_tag.name IN (%s)", strings.Join(tagNames, ", "))
+
+		// Group by blog post ID
+		postSql += " GROUP BY blog_post.id"
+		
+		// Add HAVING clause to ensure all specified tags are matched
+		// This ensures the blog post has ALL of the requested tags, not just any of them
+		postSql += fmt.Sprintf(" HAVING COUNT(DISTINCT blog_tag.name) >= %d", len(tags))
+	} else {
+		postSql += "WHERE blog_post.title ILIKE '%' || @search || '%'"
+	}
+
+	// Add pagination
+	postSql += " LIMIT @limit OFFSET @page;"
+
+	// Execute post sql
+	value := []models.BlogPostContentWithTags{}
+	rows, err := s.Conn.Query(config.CTX, postSql, args)
+	if err != nil {
+		return value, err
+	}
+
+	for rows.Next() {
+		postItem := models.BlogPostContentWithTags{}
+
+		// Scan post
+		if err := rows.Scan(
+			&postItem.Id,
+			&postItem.Title,
+			&postItem.Slug,
+			&postItem.Content,
+			&postItem.CreatedAt,
+			&postItem.UpdatedAt,
+			&postItem.IsDraft,
+		); err != nil {
+			return value, err
+		}
+
+		// Get tags from sql using parameterized query
+		tagSql := `
+			SELECT blog_tag.id, blog_tag.name
+			FROM blog_tag
+			INNER JOIN blog_post_tag ON blog_post_tag.tag_id = blog_tag.id
+			WHERE blog_post_tag.post_id = $1;`
+		tagRows, err := s.Conn.Query(config.CTX, tagSql, postItem.Id)
+		if err != nil {
+			return value, err
+		}
+
+		for tagRows.Next() {
+			tagItem := models.BlogTag{}
+			if err := tagRows.Scan(
+				&tagItem.Id,
+				&tagItem.Name,
+			); err != nil {
+				return value, err
+			}
+			postItem.Tags = append(postItem.Tags, tagItem)
+		}
+
+		value = append(value, postItem)
+	}
+
+	return value, nil
+}
+
 func (s *BlogPostService) Create(input *models.BlogPostCreated) (models.BlogPostContentWithTags, error) {
 	// Get slug string
 	slugString := slug.Make(input.Title)

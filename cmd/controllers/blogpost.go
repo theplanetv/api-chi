@@ -103,6 +103,57 @@ func (c *BlogPostController) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (c *BlogPostController) GetAllWithContent(w http.ResponseWriter, r *http.Request) {
+	// Retrieve query parameters
+	search := r.URL.Query().Get("search")
+	tagsString := r.URL.Query().Get("tags")
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, message.Response{
+			Message: message.INVALID_INPUT,
+			Data:    nil,
+		})
+		return
+	}
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, message.Response{
+			Message: message.GET_DATA_FAILED,
+			Data:    nil,
+		})
+		return
+	}
+
+	// Turn string tags query to array
+	tags := convert.StringToBlogtagSlice(tagsString)
+
+	// Open and close database after end
+	err = c.service.Open()
+	defer c.service.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get all data and return if failed or success
+	data, err := c.service.GetAllWithContent(search, tags, limit, page)
+	if err != nil {
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, message.Response{
+			Message: message.GET_DATA_FAILED,
+			Data:    nil,
+		})
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, message.Response{
+		Message: message.GET_DATA_SUCCESS,
+		Data:    data,
+	})
+}
+
 func (c *BlogPostController) GetWithSlug(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 	if slug == "" {

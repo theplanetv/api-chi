@@ -114,6 +114,25 @@ func Test_BlogPostRoutes(t *testing.T) {
 		assert.NotNil(t, response.Data)
 	})
 
+	t.Run("GetAllWithContent success", func(t *testing.T) {
+		search := ""
+		limit := 10
+		page := 1
+
+		req := httptest.NewRequest("GET", fmt.Sprintf("/blog/posts/content?search=%s&limit=%d&page=%d", search, limit, page), nil)
+		req.AddCookie(authCookie)
+		res := httptest.NewRecorder()
+
+		r.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusOK, res.Code)
+		var response message.Response
+		err := json.NewDecoder(res.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.Equal(t, message.GET_DATA_SUCCESS, response.Message)
+		assert.NotNil(t, response.Data)
+	})
+
 	t.Run("Update success", func(t *testing.T) {
 		if id == "" {
 			t.Fatal("ID must be set before running Update test")

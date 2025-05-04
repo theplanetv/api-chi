@@ -16,6 +16,7 @@ func BlogPostRoutes(r chi.Router) {
 		r.Get("/", controller.GetAll)
 		r.Get("/slug/{slug}", controller.GetWithSlug)
 
+		r.With(authMiddleware.CheckLogin).Get("/content", controller.GetAllWithContent)
 		r.With(authMiddleware.CheckLogin).Post("/", controller.Create)
 		r.With(authMiddleware.CheckLogin).Patch("/", controller.Update)
 		r.With(authMiddleware.CheckLogin).Delete("/{id}", controller.Remove)
