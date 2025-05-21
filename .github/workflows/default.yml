@@ -32,7 +32,7 @@ jobs:
         uses: nicknovitski/nix-develop@v1
 
       - name: Run linting
-        run: golangci-lint run
+        run: golangci-lint run --config=.golangci.yml
 
       - name: Install dependencies
         run: |
