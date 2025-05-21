@@ -15,7 +15,7 @@ func (s *DatabaseService) Open() error {
 	config.LoadDatabaseConfig()
 	databaseUrl := config.POSTGRES_URL
 	if databaseUrl == "" {
-		return errors.New("database url is empty!")
+		return errors.New("database url is empty")
 	}
 	pool, err := pgxpool.New(config.CTX, databaseUrl)
 	if err != nil {
